@@ -1,0 +1,665 @@
+---
+main_topsize: 0.15
+main_bottomsize: 0.025
+title: '**A case study using the *rerddap* R package**'
+author:
+  - name: '**Virginia A. García Alonso**'
+    affil: 1,2
+    main: true
+    orcid: '0000-0003-2224-8376'
+    twitter: VA_GarciaAlonso 
+    email: garciaalonso.v.a@gmail.com
+  - name: Pablo S. Milla Carmona
+    affil: 3,4
+    main: true
+    orcid: '0000-0002-0396-6244'
+    twitter: millacarmonia
+    email: 'pablomillac@gmail.com'
+affiliation:
+  - num: 1
+    address: Universidad de Buenos Aires. Facultad de Ciencias Exactas y Naturales. Departamento de Biodiversidad y Biología Experimental. Buenos Aires, Argentina.
+  - num: 2
+    address: CONICET-Universidad de Buenos Aires. Instituto de Biodiversidad y Biología Experimental Aplicada (IBBEA). Buenos Aires, Argentina.
+  - num: 3
+    address: Universidad de Buenos Aires. Facultad de Ciencias Exactas y Naturales. Departamento de Ciencias Geológicas. Buenos Aires, Argentina.
+  - num: 4
+    address: CONICET-Universidad de Buenos Aires. Instituto de Estudios Andinos "Don Pablo Groeber" (IDEAN). Buenos Aires, Argentina.
+main_findings:
+  - "Retrieving and visualizing **satellite sea water temperature** data for marine analyses"
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: false
+    pandoc_args: --mathjax
+    number_sections: false
+bibliography: packages.bib
+link-citations: true
+affiliation_textsize: "25pt"
+reference_textsize: "25pt"
+body_textsize: "36pt"
+knit: pagedown::chrome_print
+---
+```{css, echo = FALSE}
+@page {
+size: $if(poster_width)$$poster_width$$else$36in$endif$ $if(poster_height)$$poster_height$$else$48in$endif$;
+margin: 0;
+padding: 0;
+}
+body {
+margin: 0px;
+padding: 0px;
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: $if(poster_height)$$poster_height$$else$48in$endif$;
+text-align: justify;
+font-size: $if(body_textsize)$$body_textsize$$else$45px$endif$;
+line-height: 1.05;
+}
+/* RMarkdown Class Styles */
+/* center align leaflet map,
+from https://stackoverflow.com/questions/52112119/center-leaflet-in-a-rmarkdown-document */
+.html-widget {
+margin: auto;
+position: sticky;
+margin-top: 2cm;
+margin-bottom: 2cm;
+}
+.leaflet.html-widget.html-widget-static-bound.leaflet-container.leaflet-touch.leaflet-fade-anim.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+position: sticky;
+width: 100%;
+}
+pre.sourceCode.r, pre.sourceCode.python {
+background-color: transparent;
+border: solid $if(secondary_colour)$$secondary_colour$$else$#008080$endif$ 1mm;
+border-radius: 0.5em;
+padding: 0mm;
+margin: 0;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+/* align-items: center; */
+}
+div.sourceCode {
+background-color: #00000010;
+width: 100%;
+margin-left: 0.5em;
+margin-right: 0.5em;
+}
+code.sourceCode.r, code.sourceCode.python {
+background-color: transparent;
+font-size: 27pt;
+border-radius: 2mm;
+}
+code {
+font-size: 27pt;
+font-family: monospace;
+background-color: $if(secondary_colour)$$secondary_colour$24$else$#00808024$endif$;
+color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+padding: 0.5mm;
+line-height: 1;
+border-radius: 1mm;
+}
+caption {
+margin-bottom: 10px;
+font-size: 35pt;
+font-style: italic;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$20;
+}
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+  border-spacing: 0;
+  font-size: 80%;
+  border-style: none;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-right: 1em;
+  padding-left: 1em;
+  line-height: 1em;
+}
+table {
+  margin: auto;
+}
+th {
+  padding-left: 5mm;
+  padding-right: 5mm;
+}
+.caption {
+font-size: 30pt;
+font-style: italic;
+padding-top: 0;
+}
+.references {
+font-size: $if(reference_textsize)$$reference_textsize$$else$20px$endif$;
+line-height: 90%;
+}
+/* Create three unequal columns that floats next to each other */
+.column {
+float: left;
+padding: 0px;
+}
+.outer {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_topsize)$ (1 - $main_topsize$ - $main_bottomsize$ - 0.01) $else$ 0.6325 $endif$);
+-webkit-column-count: $if(column_numbers)$$column_numbers$$else$3$endif$; /* Chrome, Safari, Opera */
+-moz-column-count: $if(column_numbers)$$column_numbers$$else$3$endif$; /* Firefox */
+column-count: $if(column_numbers)$$column_numbers$$else$3$endif$;
+-webkit-column-fill: auto;
+-moz-column-fill: auto;
+column-fill: auto;
+column-gap: 0;
+padding-left: 0cm;
+padding-right: 0cm;
+/* -webkit-column-rule-width: 50%;
+-moz-column-rule-width: 50%;
+column-rule-width: 50%; */
+-webkit-column-rule-style: none;
+-moz-column-rule-style: none;
+column-rule-style: none;
+-webkit-column-rule-color: black;
+-moz-column-rule-color: black;
+column-rule-color: black;
+background-color: $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$;
+font-family: $if(font_family)$$font_family$$else$Rasa$endif$;
+margin-top: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_topsize)$ $main_topsize$ $else$ 0.25 $endif$);
+padding-top: 1em;
+padding-bottom: 1em;
+}
+span.citation {
+  color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+  font-weight: bold;
+}
+a {
+text-decoration: none;
+color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+}
+#title {
+font-size: $if(title_textsize)$$title_textsize$$else$125pt$endif$;
+text-align: left;
+margin: 0;
+line-height: 98%;
+border-bottom: 0;
+font-weight: normal;
+background: 0;
+}
+#author {
+color:$if(author_textcol)$$author_textcol$$else$$if(primary_colour)$$primary_colour$$else$#0b4545$endif$$endif$;
+margin: 0;
+line-height: 85%;
+font-size: $if(author_textsize)$$author_textsize$$else$1.17em$endif$;
+}
+#affiliation {
+padding-top: 0.1em;
+color: $affiliation_textcol$;
+font-style: italic;
+font-size: $if(affiliation_textsize)$$affiliation_textsize$$else$25px$endif$;
+margin: 0;
+}
+sup {
+color: $if(accent_colour)$$accent_colour$$else$#cc0000$endif$;
+}
+.affiliation sup {
+font-size: 20px;
+}
+.author {
+text-align: left;
+}
+.author sup {
+font-size: 30px;
+}
+.author_extra {
+color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+margin: 0;
+line-height: 85%;
+font-size: $if(authorextra_textsize)$$authorextra_textsize$$else$35px$endif$;
+text-align: left;
+}
+.outer h1, h2, h3, h4, h5, h6 {
+text-align: center;
+margin: 0;
+font-weight: bold;
+}
+.section h1 {
+  text-align:center;
+  padding-bottom:5px;
+  background:
+    linear-gradient(
+      to left,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 1%,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 20%,
+      $if(primary_colour)$$primary_colour$$else$#0b4545$endif$75 33%,
+      $if(primary_colour)$$primary_colour$$else$#0b4545$endif$ 50%,
+      $if(primary_colour)$$primary_colour$$else$#0b4545$endif$75 66%,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 80%,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 99%
+    )
+    left
+    bottom
+    $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$
+    no-repeat;
+  background-size:100% 5px ;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.outer h2 {
+text-align: center;
+}
+.outer p, .level2 {
+color: $if(body_textcol)$$body_textcol$$else$#000000$endif$;
+}
+.outer ol {
+padding-left: 8%;
+padding-right: 8%;
+text-align: left;
+}
+.main {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_topsize)$$main_topsize$$else$0.25$endif$);
+position: absolute;
+background-color: $if(primary_colour)$$primary_colour$$else$#0b4545$endif$;
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$$if(main_textalpha)$$main_textalpha$$else$90$endif$;
+font-family: $if(main_fontfamily)$$main_fontfamily$$else$Special Elite$endif$;
+background-image: linear-gradient($if(primary_colour)$$primary_colour$$else$#0b4545$endif$ 50%,$if(secondary_colour)$$secondary_colour$$else$#008080$endif$);
+}
+.main strong {
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$;
+}
+.main strong > sup {
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$;
+}
+.main sup {
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$$if(main_textalpha)$$main_textalpha$$else$90$endif$;
+}
+#main-img-left {
+width: 10%;
+left: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+#main-img-center {
+width: 10%;
+left: calc($if(poster_width)$$poster_width$$else$36in$endif$ * 0.45);
+bottom: 0.5in;
+position: absolute;
+}
+#main-img-right {
+width: 10%;
+right: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+.main p {
+font-size: $if(main_textsize)$$main_textsize$$else$150px$endif$;
+font-family: $if(main_fontfamily)$$main_fontfamily$$else$Special Elite$endif$;
+text-align: $if(main_textalign)$$main_textalign$$else$center$endif$;
+margin: 0;
+position: absolute;
+top: 50%;
+-ms-transform: translateY(-50%);
+transform: translateY(-50%);
+margin-left: 1em;
+}
+.fab {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 25px;
+}
+.twitter, i {
+color: #00000090;
+font-size: 35px;
+text-decoration: none;
+}
+a.email {
+text-decoration: none;
+color: #00000090;
+font-size: 35px;
+}
+.envelope {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 5px;
+text-decoration: none;
+}
+.globe {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 5px;
+text-decoration: none;
+}
+.globetext {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 35px;
+text-decoration: none;
+}
+.poster_wrap {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: $if(poster_height)$$poster_height$$else$48in$endif$;
+padding: 0cm;
+}
+.main_bottom {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_bottomsize)$$main_bottomsize$$else$0.1$endif$);
+margin-top: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_bottomsize)$(1 - $main_bottomsize$)$else$0.9$endif$);
+position: absolute;
+background-color: $if(primary_colour)$$primary_colour$$else$#0b4545$endif$;
+background-image: linear-gradient($if(secondary_colour)$$secondary_colour$$else$#008080$endif$ 10%, $if(primary_colour)$$primary_colour$$else$#0b4545$endif$);
+}
+.section {
+  padding-left: $if(column_padding)$$column_padding$$else$10mm$endif$;
+  padding-right: $if(column_padding)$$column_padding$$else$10mm$endif$;
+}
+span > #tab:mytable {
+  font-weight: bold;
+}
+.orcid img {
+  width: 3%;
+}
+.emphasis {
+  background-color: #008080;
+  color: #ffffff;
+  border: solid #0b2045 3mm;
+  margin: 1em;
+  padding-left: 0;
+  padding-right: 0;
+}
+.emphasis h1 {
+  font-weight: bold;
+  background: none;
+  background-color: #0b2045;
+  padding-bottom: 5mm;
+  padding-top: 1mm;
+  margin-top: -1mm;
+  margin-right: -1mm;
+  margin-left: -1mm;
+}
+.emphasis blockquote {
+  border: 0;
+}
+.emphasis ol {
+  padding: 0;
+  padding-left: 8%;
+  font-size: 100%;
+  font-weight: bold;
+}
+.emphasis p {
+  color: #ffffff;
+}
+```
+```{r setup, include=FALSE}
+#to suppress the version number in the subdirectory name
+options(htmltools.dir.version = FALSE)
+
+#to change the default values of chunk options 
+knitr::opts_chunk$set(echo = FALSE, #prevent printing of the R code
+                      warning = FALSE, #prevent printing of warnings
+                      message = FALSE, #prevent printing of messages
+                      tidy = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%",
+                      dev = 'svg', #set figures' formats
+                      dev.args = list(bg = "transparent"))
+options(knitr.table.format = "html") 
+
+#to generate references for R packages
+knitr::write_bib(c('rerddap','tidyverse','sf','ggspatial','rnaturalearth','rnaturalearthdata','rnaturalearthhires','marmap'), 'packages.bib')
+```
+
+# Motivation
+
+Environmental variables are key determinants of many biological processes in marine ecosystems. Temperature variability is especially important in high latitudes where organisms are subject to marked seasonal variations which influence their life cycles. Since collection of *in situ* data entails different logistic challenges and may provide inadequate spatiotemporal resolutions, **satellite data emerges as a powerful tool to boost marine analyses**.
+
+
+## What is this poster about?
+
+A **workflow** including the necessary steps to i) retrieve **satellite sea surface temperature (sst) data** from the ERDDAP server using the *rerddap* package [@R-rerddap] and ii) **visualize** the results.
+
+
+## Where and when?
+
+The chosen study area is located in the southern border of the Southwest Atlantic Ocean, a region displaying both a **marked seasonality** and a **longitudinal gradient** in water temperature across seasons. We will visualize sst data from austral spring and autumn of 2015-2016.
+
+
+## Which data set?
+
+The 'jplMURSST41' gridded data set, a **Multiscale Ultrahigh Resolution (MUR) L4 analysis** of sst. It includes a **global 0.01 degree grid** with interpolated sst expressed as Celsius degrees (ºC). More information can be found at the [podaac dataset website](<https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1>).
+
+To visualize other ERDDAP data sets check [this page](<https://coastwatch.pfeg.noaa.gov/erddap/griddap/index.html?page=1&itemsPerPage=1000>).
+
+
+# 1. Load needed packages
+
+Besides the *rerdapp* package, we will need the *tidyverse* [@R-tidyverse], *sf* [@R-sf], *ggspatial* [@R-ggspatial], *rnaturalearth* [@R-rnaturalearth], *rnaturalearthdata* [@R-rnaturalearthdata], *rnaturalearthhires* [@R-rnaturalearthhires] and *marmap* [@R-marmap] packages to manipulate data and visualize it nicely :)
+
+```{r packages, echo=FALSE}
+#to retrieve sea surface temperature (sst) data
+library(rerddap)
+
+#for basic data manipulation and visualization
+library(tidyverse)
+
+# to work with spatial data and improve our maps
+library(sf) # st_crop()
+library(ggspatial) # annotation_north_arrow() / annotation_scale()
+
+#to retrieve world map
+library(rnaturalearth) # ne_countries()
+library(rnaturalearthdata) # holds data used by rnaturalearth package
+library(rnaturalearthhires) # high resolution world vector maps from Natural Earth
+
+# to retrieve bathymetric data
+library(marmap) # getNOAA.bathy()
+
+#to solve problems with the latest version of sf for st_as_sf()
+sf_use_s2(FALSE)
+```
+
+# 2. Download sst data
+
+We will retrieve sst data with the `info()` function and choose the desired data according to the spatiotemporal resolution needed with the `griddap()` function.
+
+```{r download_sst_spring, eval=FALSE, echo=T}
+#retrieve the sst data set
+sstInfo <- info('jplMURSST41')
+
+#choose the spatiotemporal resolution
+sst_spring <-
+  
+  griddap(sstInfo,
+          latitude = c(-56, -52),
+          longitude = c(-70, -55),
+          time = c('2015-09-21',
+                   '2015-12-21'),
+          fields = 'analysed_sst',
+          fmt ="csv")
+```
+
+Downloading this data takes a while... you can save it as a `.csv` file to use it in the future with the following command:
+
+`write.csv(sst_spring,"sst_spring.csv",row.names=F)`
+
+# 3. Read and organize data
+
+We have multiple sst for each latitude/longitude pair (one per day), so we will estimate **mean sst**.
+```{r read_sst_spring, echo=T}
+#load the data as following
+sst_spring <- 
+  
+  read.csv(file="sst_spring.csv",header=T)
+  
+#transform and organize the data
+mean_sst_spring <-
+  
+  #transform to a data frame
+  as.data.frame(sst_spring) %>%
+
+  #select the needed variables
+  dplyr::select(longitude, latitude,
+                analysed_sst) %>%
+  
+  #estimate mean sst for each lat/long
+  group_by(longitude,latitude) %>%
+  summarise(mean_sst=mean(analysed_sst)) %>%
+  ungroup() %>%
+  
+  #set a new variable to identify the season
+  mutate(season="Spring")
+```
+
+We can repeat the same procedure for **autumn** creating a new object named `mean_sst_autumn` and finally join both datasets in a single object. 
+
+```{r download_sst_autumn, eval=FALSE}
+  sst_autumn <-   
+    griddap(sstInfo,
+            latitude = c(-56, -51), 
+            longitude = c(-70, -55),
+            time = c('2016-03-21',
+                     '2016-06-21'),
+            fields = 'analysed_sst',
+            fmt = "csv")
+
+  #save data to use it in the future
+  write.csv(sst_autumn,"sst_autumn.csv", row.names = FALSE)
+```
+
+```{r read_sst_autumn}
+#load the data as following
+sst_autumn <- read.csv(file = "sst_autumn.csv",
+                       header = TRUE)
+  
+  #transform and organize data
+  mean_sst_autumn <-
+    
+    #transform to a data frame
+    as.data.frame(sst_autumn) %>%
+    
+    #select the needed variables
+    dplyr::select(longitude,latitude,analysed_sst) %>%
+    
+    #estimate mean temperature for each lat/long position
+    group_by(longitude,latitude) %>%
+    summarise(mean_sst=mean(analysed_sst)) %>%
+    ungroup() %>%
+    
+    #set a new variable to merge data with spring
+    mutate(season = "Autumn")
+
+```
+```{r join_data, echo=T}
+#join data from both seasons
+mean_sst <- 
+  bind_rows(mean_sst_spring,
+            mean_sst_autumn)
+```
+
+# Finally, the plot!
+
+We will plot sst data with *ggplot2*, employing the `geom_raster()` function.
+```{r geom_raster, echo=T, eval=F}
+ggplot()+
+  
+  #add sst as a raster and interpolate
+  geom_raster(data = mean_sst,
+              aes(x = longitude,
+                  y = latitude,
+                  fill = mean_sst),
+                  interpolate = T)+
+  
+  #set the fill
+  scale_fill_viridis_c(alpha = 0.85)+
+  
+  #separate plots for each season
+  facet_grid(season~.)
+```
+
+A few more tweaks allow including the continental territory and relevant bathymetric contours to the map and getting this!
+
+```{r basemap, echo=F, message=F, warning=F}
+
+#base-map ----
+
+#retrieve world map
+world <- ne_countries(scale = "large", returnclass = "sf")
+
+#subset data to the study area
+study_area<-st_crop(world, xmin = -70, xmax = -55,
+                           ymin = -56, ymax = -52)
+
+#isobath ----
+bathy_data <- 
+  
+  #get the data      
+  getNOAA.bathy(lon1=-71, lon2=-54,
+                lat1=-58, lat2=-51,
+                #keep=T, #if the datafile is very large you can save it as a csv.
+                resolution=1) %>%  #resolution in minutes
+  
+  #prepare data
+  fortify.bathy() %>%  #extract bathymetric values
+  mutate(z = as.numeric(z)) %>% 
+  
+  #subset for study area
+  filter(z<=-1 & between(x, -70, -55) & between(y, -56, -52))
+
+
+```
+
+
+```{r, fig.alt = "Plot showing mean sea surface temperature data in spring 2015 and autumn 2016 in the southern region of the Southwest Atlantic Ocean. Temperature is indicated in Celsius degrees and values range between 2.60 and 6.16 degrees in spring and 3.70 and 11.03 degrees in autumn. In both seasons, temperatures are higher near the coasts of Tierra del Fuego (Argentina) and decreases towards the more oceanic area at the east of the continental shelf.", fig.height=8, out.width="100%", fig.cap = "Mean sea surface temperature (sst) in spring 2015 and autumn 2016 in the Southwest Atlantic Ocean"}
+
+ggplot()+
+  
+  #add sst as a raster and interpolate
+  geom_raster(data = mean_sst, 
+              aes(x = longitude, 
+                  y = latitude, 
+                  fill = mean_sst),
+                  interpolate = T)+
+  
+  #set the fill
+  scale_fill_viridis_c(alpha = 0.85)+
+
+  #adjust how we "see" the map
+  geom_sf(data=study_area, fill= "grey20", colour = "white") +
+  
+  #add the 200m isobath
+  geom_contour(data = bathy_data, aes(x=x, y=y, z=z),
+               breaks=c(-200), size=0.5, colour="white")+
+  
+  #adjust the limits to the area
+  coord_sf(xlim = c(-70, -55), ylim = c(-56, -52), expand = F)+
+  
+  #set the breaks in "x" and "y" axis
+  scale_x_continuous(breaks = seq(from=-68, to=-56, by=4)) +
+  scale_y_continuous(breaks = seq(from=-55, to=-53, by=2))+
+  
+  #add scale bar
+  annotation_scale(location = "br", width_hint = 0.2, 
+                   text_cex = 1, text_col= "white") +
+
+  #add north arrow
+  annotation_north_arrow(location = "br", 
+                         which_north = T,
+                         style = north_arrow_fancy_orienteering,
+                         pad_x = unit(0.35, "cm"),
+                         pad_y = unit(0.5, "cm"),
+                         height = unit(2, "cm"),
+                         width = unit(2, "cm"))+     
+
+  #separate according to season
+  facet_grid(forcats::fct_rev(season)~.)+
+  
+  #add title
+  ggtitle("Seasonal sst variability") +
+
+  #change legend title
+  labs(fill = "Mean\nsst (ºC)")+
+
+  #set theme
+  theme_bw(base_size = 20)+
+  
+  #remove axis names and adjust strip
+  theme(axis.title = element_blank(),
+        legend.position = "bottom",
+        legend.key.width = unit(1.5, "cm"),
+        strip.background = element_blank(),
+        strip.text =  element_text(face = "bold",hjust = 0))
+```
+
+Hope you find it useful!!! Materials employed for the poster are openly shared in this [GitHub repository](<https://github.com/virginiagarciaalonso/useR_2022_sst>) including a spanish version.
+
+# References
