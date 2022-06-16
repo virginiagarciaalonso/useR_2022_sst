@@ -36,7 +36,7 @@ link-citations: true
 affiliation_textsize: "25pt"
 reference_textsize: "25pt"
 body_textsize: "36pt"
-knit: pagedown::chrome_print
+#knit: pagedown::chrome_print
 ---
 ```{css, echo = FALSE}
 @page {
