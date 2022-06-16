@@ -8,8 +8,6 @@ output:
     self_contained: true
     nature:
       ratio: '16:9'
-bibliography: packages.bib
-link-citations: true
 ---
 
 ```{r setup, include=FALSE}
@@ -20,13 +18,10 @@ options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(echo = FALSE, #prevent printing of the R code
                       warning = FALSE, #prevent printing of warnings
                       message = FALSE, #prevent printing of messages
-                      tidy = FALSE,
                       fig.align = 'center',
                       out.width = "100%",
                       dev = 'svg', #set figures' formats
                       dev.args = list(bg = "transparent"))
-options(knitr.table.format = "html") 
-renderthis::to_pdf("slides_en.html")
 ```
 
 

@@ -36,7 +36,7 @@ link-citations: true
 affiliation_textsize: "25pt"
 reference_textsize: "25pt"
 body_textsize: "36pt"
-#knit: pagedown::chrome_print
+knit: pagedown::chrome_print
 ---
 ```{css, echo = FALSE}
 @page {
@@ -477,10 +477,10 @@ Downloading this data takes a while... you can save it as a `.csv` file to use i
 We have multiple sst for each latitude/longitude pair (one per day), so we will estimate **mean sst**.
 ```{r read_sst_spring, echo=T}
 #load the data as following
-sst_spring <- 
+sst_spring <-
   
   read.csv(file="sst_spring.csv",header=T)
-  
+
 #transform and organize the data
 mean_sst_spring <-
   
@@ -488,7 +488,8 @@ mean_sst_spring <-
   as.data.frame(sst_spring) %>%
 
   #select the needed variables
-  dplyr::select(longitude, latitude,
+  dplyr::select(longitude,
+                latitude,
                 analysed_sst) %>%
   
   #estimate mean sst for each lat/long
