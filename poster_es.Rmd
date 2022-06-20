@@ -1,7 +1,7 @@
 ---
 main_topsize: 0.15
 main_bottomsize: 0.025
-title: '**A case study using the *rerddap* R package**'
+title: '**Ejemplo utilizando el paquete de R *rerddap***'
 author:
   - name: '**Virginia A. García Alonso**'
     affil: 1,2
@@ -25,7 +25,7 @@ affiliation:
   - num: 4
     address: CONICET-Universidad de Buenos Aires. Instituto de Estudios Andinos "Don Pablo Groeber" (IDEAN). Buenos Aires, Argentina.
 main_findings:
-  - "Retrieving and visualizing **satellite sea water temperature** data for marine analyses"
+  - "Cómo obtener y visualizar **datos satelitáles de temperatura superficial del mar** para estudios de datos marinos"
 output: 
   posterdown::posterdown_betterport:
     self_contained: false
@@ -36,8 +36,9 @@ link-citations: true
 affiliation_textsize: "25pt"
 reference_textsize: "25pt"
 body_textsize: "36pt"
-#knit: pagedown::chrome_print
+knit: pagedown::chrome_print
 ---
+
 ```{css, echo = FALSE}
 @page {
 size: $if(poster_width)$$poster_width$$else$36in$endif$ $if(poster_height)$$poster_height$$else$48in$endif$;
@@ -380,6 +381,7 @@ span > #tab:mytable {
   color: #ffffff;
 }
 ```
+
 ```{r setup, include=FALSE}
 #to suppress the version number in the subdirectory name
 options(htmltools.dir.version = FALSE)
@@ -399,64 +401,60 @@ options(knitr.table.format = "html")
 knitr::write_bib(c('rerddap','tidyverse','sf','ggspatial','rnaturalearth','rnaturalearthdata','rnaturalearthhires','marmap'), 'packages.bib')
 ```
 
-# Motivation
+# Motivación
 
-Environmental variables are key determinants of many biological processes in marine ecosystems. Temperature variability is especially important in high latitudes where organisms are subject to marked seasonal variations which influence their life cycles. Since collection of *in situ* data entails different logistic challenges and may provide inadequate spatiotemporal resolutions, **satellite data emerges as a powerful tool to boost marine analyses**.
+Las variables ambientales determinan muchos procesos biológicos en los ecosistemas marinos. La temperatura es especialmente importante en altas latitudes donde ocurren marcadas variaciones estacionales que influyen en los ciclos de vida de los organismos. Debido a los desafíos involucrados en obtener datos *in situ* y su baja resolución espaciotemporal, **utilizar datos satelitales emerge como una herramienta poderosa para impulsar los análisis marinos**.
 
+## ¿Qué incluye este poster?
 
-## What is this poster about?
+Un flujo de trabajo con los pasos para i) obtener **datos satelitales de temperatura superficial del mar (tsm)** desde el servidor ERDDAP usando el paquete *rerddap* [@R-rerddap] y ii) **visualizar** los resultados.
 
-A **workflow** including the necessary steps to i) retrieve **satellite sea surface temperature (sst) data** from the ERDDAP server using the *rerddap* package [@R-rerddap] and ii) **visualize** the results.
+## ¿Dónde y cuándo?
 
+El área de estudio abarca el extremo sur del Océano Atlántico Sudoccidental, donde existe una **marcada estacionalidad** y un **gradiente longitudinal** en la tsm entre temporadas. Visualizaremos datos de tsm de la primavera 2015 y otoño 2016.
 
-## Where and when?
+## ¿Con cuál base de datos?
 
-The chosen study area is located in the southern border of the Southwest Atlantic Ocean, a region displaying both a **marked seasonality** and a **longitudinal gradient** in water temperature across seasons. We will visualize sst data from austral spring and autumn of 2015-2016.
+Con 'jplMURSST41', una base de datos de tsm de **ultra-alta resolución** generada en el *JPL Physical Oceanography DAAC (PODAAC)*. Esta incluye una **grilla global de 0,01 grados** con tsm interpoladas en grados Celcius (ºC). Más información en este [sitio web](https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1).
 
+Aquí puedes ver [otras bases de datos de ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/griddap/index.html?page=1&itemsPerPage=1000).
 
-## Which data set?
+# 1. Cargar los paquetes
 
-The 'jplMURSST41' gridded data set, a **Multiscale Ultrahigh Resolution (MUR) L4 analysis** of sst. It includes a **global 0.01 degree grid** with interpolated sst expressed as Celsius degrees (ºC). More information can be found at the [podaac dataset website](<https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1>).
-
-To visualize other ERDDAP data sets check [this page](<https://coastwatch.pfeg.noaa.gov/erddap/griddap/index.html?page=1&itemsPerPage=1000>).
-
-
-# 1. Load needed packages
-
-Besides the *rerdapp* package, we will need the *tidyverse* [@R-tidyverse], *sf* [@R-sf], *ggspatial* [@R-ggspatial], *rnaturalearth* [@R-rnaturalearth], *rnaturalearthdata* [@R-rnaturalearthdata], *rnaturalearthhires* [@R-rnaturalearthhires] and *marmap* [@R-marmap] packages to manipulate data and visualize it nicely :)
+Ademas del paquete *rerdapp*, necesitaremos los paquetes *tidyverse* [@R-tidyverse], *sf* [@R-sf], *ggspatial* [@R-ggspatial], *rnaturalearth* [@R-rnaturalearth], *rnaturalearthdata* [@R-rnaturalearthdata], *rnaturalearthhires* [@R-rnaturalearthhires] and *marmap* [@R-marmap] para manipular los datos y generar lindas visualizaciones :)
 
 ```{r packages, echo=FALSE}
-#to retrieve sea surface temperature (sst) data
+#para obtener los datos de la temperatura superficial del mar (tsm)
 library(rerddap)
 
-#for basic data manipulation and visualization
+#para manipulacion y visualizacion basica de los datos
 library(tidyverse)
 
-# to work with spatial data and improve our maps
+#para trabajar con datos espaciales y mejorar los mapas
 library(sf) # st_crop()
 library(ggspatial) # annotation_north_arrow() / annotation_scale()
 
-#to retrieve world map
+#para obtener el mapa mundial
 library(rnaturalearth) # ne_countries()
-library(rnaturalearthdata) # holds data used by rnaturalearth package
-library(rnaturalearthhires) # high resolution world vector maps from Natural Earth
+library(rnaturalearthdata) # contiene datos usados por el paquete rnaturalearth
+library(rnaturalearthhires) # vectores del mapa mundial en alta resolucion tomados de Natural Earth
 
-# to retrieve bathymetric data
+#para obtener datos batimetricos
 library(marmap) # getNOAA.bathy()
 
-#to solve problems with the latest version of sf for st_as_sf()
+#para resolver problemas con la ultima version de sf para st_as_sf()
 sf_use_s2(FALSE)
 ```
 
-# 2. Download sst data
+# 2. Descargar datos de tsm
 
-We will retrieve sst data with the `info()` function and choose the desired data according to the spatiotemporal resolution needed with the `griddap()` function.
+Obtendremos datos de tsm con la función `info()` y eligiremos los datos deseados de acuerdo a la resolución espacio-temporal necesaria con la función `griddap()`.
 
 ```{r download_sst_spring, eval=FALSE, echo=T}
-#retrieve the sst data set
+#obtener base de datos de tsm
 sstInfo <- info('jplMURSST41')
 
-#choose the spatiotemporal resolution
+#elegir la resolucion espacio-temporal
 sst_spring <-
   
   griddap(sstInfo,
@@ -468,39 +466,37 @@ sst_spring <-
           fmt ="csv")
 ```
 
-Downloading this data takes a while... you can save it as a `.csv` file to use it in the future with the following command:
+Descargar estos datos toma tiempo... para evitarlo, puedes guardarlos en un archivo `.csv` para tenerlos disponibles en el futuro, llamándolos con el comando
 
 `write.csv(sst_spring,"sst_spring.csv",row.names=F)`
 
-# 3. Read and organize data
+# 3. Leer y organizar los datos
+Tenemos múltiples tsm para cada par latitud/longitud (una por día), por lo que estimaremos una **tsm promedio**.
 
-We have multiple sst for each latitude/longitude pair (one per day), so we will estimate **mean sst**.
 ```{r read_sst_spring, echo=T}
-#load the data as following
-sst_spring <-
-  
-  read.csv(file="sst_spring.csv",header=T)
-
-#transform and organize the data
+#cargar los datos
+sst_spring <- 
+    read.csv(file="sst_spring.csv",header=T)
+#transformar y organizar los datos
 mean_sst_spring <-
   
-  #transform to a data frame
+  #transformar en un data frame
   as.data.frame(sst_spring) %>%
-
-  #select the needed variables
-  dplyr::select(longitude,latitude,
+  
+  #seleccionar las variables
+  dplyr::select(longitude, latitude,
                 analysed_sst) %>%
   
-  #estimate mean sst for each lat/long
+  #estimar tsm promedio
   group_by(longitude,latitude) %>%
   summarise(mean_sst=mean(analysed_sst)) %>%
   ungroup() %>%
   
-  #set a new variable to identify the season
-  mutate(season="Spring")
+  #generar nueva variable segun la temporada
+  mutate(season="Primavera")
 ```
 
-We can repeat the same procedure for **autumn** creating a new object named `mean_sst_autumn` and finally join both datasets in a single object. 
+Repetimos el mismo procedimiento para **otoño**, creando un nuevo objeto llamado `mean_sst_autumn`, y finalizamos uniendo ambos conjuntos de datos en un único objeto.
 
 ```{r download_sst_autumn, eval=FALSE}
   sst_autumn <-   
@@ -512,126 +508,126 @@ We can repeat the same procedure for **autumn** creating a new object named `mea
             fields = 'analysed_sst',
             fmt = "csv")
 
-  #save data to use it in the future
+  #guardar los datos para usar en el futuro
   write.csv(sst_autumn,"sst_autumn.csv", row.names = FALSE)
 ```
 
 ```{r read_sst_autumn}
-#load the data as following
+#cargar los datos
 sst_autumn <- read.csv(file = "sst_autumn.csv",
                        header = TRUE)
   
-  #transform and organize data
+  #transformarlos y organizarlos
   mean_sst_autumn <-
     
-    #transform to a data frame
+    #transformar en un data frame
     as.data.frame(sst_autumn) %>%
     
-    #select the needed variables
+    #seleccionar las variables
     dplyr::select(longitude,latitude,analysed_sst) %>%
     
-    #estimate mean temperature for each lat/long position
+    #estimatar la tsm promedio
     group_by(longitude,latitude) %>%
     summarise(mean_sst=mean(analysed_sst)) %>%
     ungroup() %>%
     
-    #set a new variable to merge data with spring
-    mutate(season = "Autumn")
-
+    #crear nueva variable que indique la estacion
+    mutate(season = "Otoño")
 ```
+
 ```{r join_data, echo=T}
-#join data from both seasons
+#unir los datos de ambas estaciones
 mean_sst <- 
   bind_rows(mean_sst_spring,
             mean_sst_autumn)
 ```
 
-# Finally, the plot!
+# ¡Finalmente el gráfico!
 
-We will plot sst data with *ggplot2*, employing the `geom_raster()` function.
+Graficaremos los datos de tsm con *ggplot2*, usando la función `geom_raster()`.
+
 ```{r geom_raster, echo=T, eval=F}
 ggplot()+
   
-  #add sst as a raster and interpolate
+  #incluir la tsm como raster e interpolar
   geom_raster(data = mean_sst,
               aes(x = longitude,
                   y = latitude,
                   fill = mean_sst),
                   interpolate = T)+
   
-  #set the fill
+  #establecer el color de relleno
   scale_fill_viridis_c(alpha = 0.85)+
   
-  #separate plots for each season
+  #separar graficos por estacion
   facet_grid(season~.)
 ```
 
-A few more tweaks allow including the continental territory and relevant bathymetric contours to the map and getting this!
+Algunos ajustes adicionales permiten incluir el territorio continental y contornos batimétricos relevantes al mapa, para obtener esto!
 
 ```{r basemap, echo=F, message=F, warning=F}
 
-#base-map ----
+#mapa base ----
 
-#retrieve world map
+#obtener mapa mundial
 world <- ne_countries(scale = "large", returnclass = "sf")
 
-#subset data to the study area
+#seleccionar los datos para el area de estudio
 study_area<-st_crop(world, xmin = -70, xmax = -55,
                            ymin = -56, ymax = -52)
 
-#isobath ----
+#isobatas ----
 bathy_data <- 
   
-  #get the data      
+  #obtener datos      
   getNOAA.bathy(lon1=-71, lon2=-54,
                 lat1=-58, lat2=-51,
                 #keep=T, #if the datafile is very large you can save it as a csv.
                 resolution=1) %>%  #resolution in minutes
   
-  #prepare data
+  #preparar datos
   fortify.bathy() %>%  #extract bathymetric values
   mutate(z = as.numeric(z)) %>% 
   
-  #subset for study area
+  #seleccionar los del area de estudio
   filter(z<=-1 & between(x, -70, -55) & between(y, -56, -52))
 
 
 ```
 
-
-```{r, fig.alt = "Plot showing mean sea surface temperature data in spring 2015 and autumn 2016 in the southern region of the Southwest Atlantic Ocean. Temperature is indicated in Celsius degrees and values range between 2.60 and 6.16 degrees in spring and 3.70 and 11.03 degrees in autumn. In both seasons, temperatures are higher near the coasts of Tierra del Fuego (Argentina) and decreases towards the more oceanic area at the east of the continental shelf.", fig.height=8, out.width="100%", fig.cap = "Mean sea surface temperature (sst) in spring 2015 and autumn 2016 in the Southwest Atlantic Ocean"}
+```{r, fig.alt = "Gráfico que muestra datos de la temperatura media de la superficie del mar en la primavera de 2015 y el otoño de 2016 en la región sur del Océano Atlántico Sudoccidental. La temperatura se indica en grados Celsius y los valores oscilan entre 2,60 y 6,16 grados en primavera y entre 3,70 y 11,03 grados en otoño. En ambos estaciones, las temperaturas son más altas cerca de las costas de Tierra del Fuego (Argentina) y disminuyen hacia la zona más oceánica al este de la plataforma continental.", fig.height=8, out.width="100%", fig.cap = "Temperatura superficial del mar (tsm) promedio en la primavera de 2015 y el otoño de 2016 en el área de estudio"}
 
 ggplot()+
   
-  #add sst as a raster and interpolate
+  #agregar tsm como raster e interpolar
   geom_raster(data = mean_sst, 
               aes(x = longitude, 
                   y = latitude, 
                   fill = mean_sst),
                   interpolate = T)+
   
-  #set the fill
+  #establecer el relleno
   scale_fill_viridis_c(alpha = 0.85)+
 
-  #adjust how we "see" the map
+  #ajustar la manera en que “vemos” el mapa
   geom_sf(data=study_area, fill= "grey20", colour = "white") +
   
-  #add the 200m isobath
+  #agregar la isobata de 200m
   geom_contour(data = bathy_data, aes(x=x, y=y, z=z),
                breaks=c(-200), size=0.5, colour="white")+
   
-  #adjust the limits to the area
+  #ajustar los limites del area
   coord_sf(xlim = c(-70, -55), ylim = c(-56, -52), expand = F)+
   
-  #set the breaks in "x" and "y" axis
+  #establecer quiebres a lo largo de los ejes “x” e “y”
   scale_x_continuous(breaks = seq(from=-68, to=-56, by=4)) +
   scale_y_continuous(breaks = seq(from=-55, to=-53, by=2))+
   
-  #add scale bar
+  #agregar escala
   annotation_scale(location = "br", width_hint = 0.2, 
                    text_cex = 1, text_col= "white") +
 
-  #add north arrow
+  #agregar flecha hacia el norte
   annotation_north_arrow(location = "br", 
                          which_north = T,
                          style = north_arrow_fancy_orienteering,
@@ -640,19 +636,19 @@ ggplot()+
                          height = unit(2, "cm"),
                          width = unit(2, "cm"))+     
 
-  #separate according to season
+  #separar de acuerdo a la estacion
   facet_grid(forcats::fct_rev(season)~.)+
   
-  #add title
-  ggtitle("Seasonal sst variability") +
+  #agregar titulo
+  ggtitle("Variabilidad estacional de la tsm") +
 
-  #change legend title
-  labs(fill = "Mean\nsst (ºC)")+
+  #cambiar el titulo de la leyenda
+  labs(fill = "tsm\npromedio (ºC)")+
 
-  #set theme
+  #setear el theme
   theme_bw(base_size = 20)+
   
-  #remove axis names and adjust strip
+  #eliminar nombres de los ajes y ajustar los strips
   theme(axis.title = element_blank(),
         legend.position = "bottom",
         legend.key.width = unit(1.5, "cm"),
@@ -660,6 +656,6 @@ ggplot()+
         strip.text =  element_text(face = "bold",hjust = 0))
 ```
 
-Hope you find it useful!!! Materials employed for the poster are openly shared in this [GitHub repository](<https://github.com/virginiagarciaalonso/useR_2022_sst>) including a spanish version.
+Esperamos que esta explicación les haya resultado útil!!! Los materiales usados para este poster se encuentran a disposición en este [repositorio de GitHub](https://github.com/virginiagarciaalonso/useR_2022_sst).
 
-# References
+# Referencias

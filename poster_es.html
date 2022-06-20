@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+
+<title>Ejemplo utilizando el paquete de R rerddap</title>
+
+<script src="poster_es_files/header-attrs/header-attrs.js"></script>
+
+
+
+<style type="text/css">pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */</style>
+
+
+<!--
+Font-awesome icons ie github or twitter
+-->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/brands.css" integrity="sha384-n9+6/aSqa9lBidZMRCQHTHKJscPq6NW4pCQBiMmHdUCvPN8ZOg2zJJTkC7WIezWv" crossorigin="anonymous">
+
+<!--
+Google fonts api stuff
+-->
+<link href='https://fonts.googleapis.com/css?family=Special Elite' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Rasa' rel='stylesheet'>
+
+<!--
+Here are the required style attributes for css to make this poster work :)
+-->
+<style>
+@page {
+size: 36in 48in;
+margin: 0;
+padding: 0;
+}
+body {
+margin: 0px;
+padding: 0px;
+width: 36in;
+height: 48in;
+text-align: justify;
+font-size: 36pt;
+line-height: 1.05;
+}
+/* RMarkdown Class Styles */
+/* center align leaflet map,
+from https://stackoverflow.com/questions/52112119/center-leaflet-in-a-rmarkdown-document */
+.html-widget {
+margin: auto;
+position: sticky;
+margin-top: 2cm;
+margin-bottom: 2cm;
+}
+.leaflet.html-widget.html-widget-static-bound.leaflet-container.leaflet-touch.leaflet-fade-anim.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+position: sticky;
+width: 100%;
+}
+pre.sourceCode.r {
+background-color: #dddddd40;
+border-radius: 4mm;
+padding: 4mm;
+width: 75%;
+margin: auto;
+margin-top: 1em;
+margin-bottom: 1em;
+/* align-items: center; */
+}
+code.sourceCode.r{
+background-color: transparent;
+font-size: 20pt;
+border-radius: 2mm;
+}
+code {
+font-size: 25pt;
+font-family: monospace;
+background-color: #00808024;
+color: #0b4545;
+padding: 1.2mm;
+line-height: 1;
+border-radius: 2mm;
+}
+caption {
+margin-bottom: 10px;
+font-size: 20pt;
+font-style: italic;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #00808020;
+}
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+  border-spacing: 0;
+  font-size: 40%;
+  border-style: none;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-right: 1em;
+  padding-left: 1em;
+  line-height: 1em;
+}
+table {
+  margin: auto;
+}
+th {
+  padding-left: 5mm;
+  padding-right: 5mm;
+}
+.caption {
+font-size: 20pt;
+font-style: italic;
+padding-top: 0;
+}
+.references {
+font-size: 25pt;
+line-height: 90%;
+}
+/* Create three unequal columns that floats next to each other */
+.column {
+float: left;
+padding: 0px;
+}
+.outer {
+width: 36in;
+height: calc(48in *  (1 - 0.15 - 2.5e-2 - 0.01) );
+-webkit-column-count: 3; /* Chrome, Safari, Opera */
+-moz-column-count: 3; /* Firefox */
+column-count: 3;
+-webkit-column-fill: auto;
+-moz-column-fill: auto;
+column-fill: auto;
+column-gap: 0;
+padding-left: 0cm;
+padding-right: 0cm;
+/* -webkit-column-rule-width: 50%;
+-moz-column-rule-width: 50%;
+column-rule-width: 50%; */
+-webkit-column-rule-style: none;
+-moz-column-rule-style: none;
+column-rule-style: none;
+-webkit-column-rule-color: black;
+-moz-column-rule-color: black;
+column-rule-color: black;
+background-color: #ffffff;
+font-family: Rasa;
+margin-top: calc(48in *  0.15 );
+padding-top: 1em;
+padding-bottom: 1em;
+}
+span.citation {
+  color: #008080;
+  font-weight: bold;
+}
+a {
+text-decoration: none;
+color: #008080;
+}
+#title {
+font-size: 125pt;
+text-align: left;
+margin: 0;
+line-height: 98%;
+border-bottom: 0;
+font-weight: normal;
+background: 0;
+}
+#author {
+color: #0b4545;
+margin: 0;
+line-height: 85%;
+font-size: 1.17em;
+}
+#affiliation {
+padding-top: 0.1em;
+color: ;
+font-style: italic;
+font-size: 25pt;
+margin: 0;
+}
+sup {
+color: #cc0000;
+}
+.affiliation sup {
+font-size: 20px;
+}
+.author {
+text-align: left;
+}
+.author sup {
+font-size: 30px;
+}
+.author_extra {
+color: #008080;
+margin: 0;
+line-height: 85%;
+font-size: 35px;
+text-align: left;
+}
+.outer h1, h2, h3, h4, h5, h6 {
+text-align: center;
+margin: 0;
+font-weight: bold;
+}
+.section h1 {
+  text-align:center;
+  padding-bottom:5px;
+  background:
+    linear-gradient(
+      to left,
+      #ffffff 1%,
+      #ffffff 20%,
+      #0b454575 33%,
+      #0b4545 50%,
+      #0b454575 66%,
+      #ffffff 80%,
+      #ffffff 99%
+    )
+    left
+    bottom
+    #ffffff
+    no-repeat;
+  background-size:100% 5px ;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.outer h2 {
+text-align: center;
+}
+.outer p, .level2 {
+color: #000000;
+}
+.outer ol {
+padding-left: 8%;
+padding-right: 8%;
+text-align: left;
+}
+.main {
+width: 36in;
+height: calc(48in * 0.15);
+position: absolute;
+background-color: #0b4545;
+color: #ffffff90;
+font-family: Special Elite;
+background-image: linear-gradient(#0b4545 50%,#008080);
+}
+.main strong {
+color: #ffffff;
+}
+.main strong > sup {
+color: #ffffff;
+}
+.main sup {
+color: #ffffff90;
+}
+#main-img-left {
+width: 10%;
+left: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+#main-img-center {
+width: 10%;
+left: calc(36in * 0.45);
+bottom: 0.5in;
+position: absolute;
+}
+#main-img-right {
+width: 10%;
+right: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+.main p {
+font-size: 150px;
+font-family: Special Elite;
+text-align: center;
+margin: 0;
+position: absolute;
+top: 50%;
+-ms-transform: translateY(-50%);
+transform: translateY(-50%);
+margin-left: 1em;
+}
+.fab {
+color: #00000030;
+font-size: 25px;
+}
+.twitter, i {
+color: #00000030;
+font-size: 35px;
+text-decoration: none;
+}
+a.email {
+text-decoration: none;
+color: #00000030;
+font-size: 35px;
+}
+.envelope {
+color: #00000030;
+font-size: 5px;
+text-decoration: none;
+}
+.poster_wrap {
+width: 36in;
+height: 48in;
+padding: 0cm;
+}
+.main_bottom {
+width: 36in;
+height: calc(48in * 2.5e-2);
+margin-top: calc(48in * (1 - 2.5e-2));
+position: absolute;
+background-color: #0b4545;
+background-image: linear-gradient(#008080 10%, #0b4545);
+}
+.section {
+  padding-left: 10mm;
+  padding-right: 10mm;
+}
+span > #tab:mytable {
+  font-weight: bold;
+}
+.orcid img {
+  width: 3%;
+}
+.emphasis {
+  background-color: #008080;
+  color: #ffffff;
+  border: solid #0b2045 3mm;
+  margin: 1em;
+  padding-left: 0;
+  padding-right: 0;
+}
+.emphasis h1 {
+  font-weight: bold;
+  background: none;
+  background-color: #0b2045;
+  padding-bottom: 5mm;
+  padding-top: 1mm;
+  margin-top: -1mm;
+  margin-right: -1mm;
+  margin-left: -1mm;
+}
+.emphasis blockquote {
+  border: 0;
+}
+.emphasis ol {
+  padding: 0;
+  padding-left: 8%;
+  font-size: 100%;
+  font-weight: bold;
+}
+.emphasis p {
+  color: #ffffff;
+}
+</style>
+</head>
+<body>
+
+
+<div class="poster_wrap">
+
+<div class="column outer">
+<div class="section">
+<h1 id="title"><strong>Ejemplo utilizando el paquete de R <em>rerddap</em></strong></h1><br>
+<h3 id="author" class="author">
+
+<strong>Virginia A. García Alonso</strong><sup> 1,2, <a class="orcid" href="https://orcid.org/0000-0003-2224-8376"><img src="https://raw.githubusercontent.com/brentthorne/posterdown/master/images/orcid.jpg"></a></sup><br>
+<a class="twitter" href="https://mobile.twitter.com/VA_GarciaAlonso"><i class="fab fa-twitter"></i>&nbsp;&nbsp;@VA_GarciaAlonso</a><br>
+
+<a class='envelope'><i class="fas fa-envelope"></i></a> <a href="mailto:garciaalonso.v.a@gmail.com" class="email">garciaalonso.v.a@gmail.com</a> <br>
+ Pablo S. Milla Carmona<sup> 3,4, <a class="orcid" href="https://orcid.org/0000-0002-0396-6244"><img src="https://raw.githubusercontent.com/brentthorne/posterdown/master/images/orcid.jpg"></a></sup><br>
+<a class="twitter" href="https://mobile.twitter.com/millacarmonia"><i class="fab fa-twitter"></i>&nbsp;&nbsp;@millacarmonia</a><br>
+
+<a class='envelope'><i class="fas fa-envelope"></i></a> <a href="mailto:pablomillac@gmail.com" class="email">pablomillac@gmail.com</a> <br>
+</h3>
+
+<h5 id="author_extra", class="author_extra">
+ </h5>
+
+
+<p id="affiliation" class="affiliation">
+<sup>1</sup> Universidad de Buenos Aires. Facultad de Ciencias Exactas y Naturales. Departamento de Biodiversidad y Biología Experimental. Buenos Aires, Argentina.<br> <sup>2</sup> CONICET-Universidad de Buenos Aires. Instituto de Biodiversidad y Biología Experimental Aplicada (IBBEA). Buenos Aires, Argentina.<br> <sup>3</sup> Universidad de Buenos Aires. Facultad de Ciencias Exactas y Naturales. Departamento de Ciencias Geológicas. Buenos Aires, Argentina.<br> <sup>4</sup> CONICET-Universidad de Buenos Aires. Instituto de Estudios Andinos “Don Pablo Groeber” (IDEAN). Buenos Aires, Argentina.
+</p>
+</div>
+
+<style type="text/css">
+@page {
+size: $if(poster_width)$$poster_width$$else$36in$endif$ $if(poster_height)$$poster_height$$else$48in$endif$;
+margin: 0;
+padding: 0;
+}
+body {
+margin: 0px;
+padding: 0px;
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: $if(poster_height)$$poster_height$$else$48in$endif$;
+text-align: justify;
+font-size: $if(body_textsize)$$body_textsize$$else$45px$endif$;
+line-height: 1.05;
+}
+/* RMarkdown Class Styles */
+/* center align leaflet map,
+from https://stackoverflow.com/questions/52112119/center-leaflet-in-a-rmarkdown-document */
+.html-widget {
+margin: auto;
+position: sticky;
+margin-top: 2cm;
+margin-bottom: 2cm;
+}
+.leaflet.html-widget.html-widget-static-bound.leaflet-container.leaflet-touch.leaflet-fade-anim.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+position: sticky;
+width: 100%;
+}
+pre.sourceCode.r, pre.sourceCode.python {
+background-color: transparent;
+border: solid $if(secondary_colour)$$secondary_colour$$else$#008080$endif$ 1mm;
+border-radius: 0.5em;
+padding: 0mm;
+margin: 0;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+/* align-items: center; */
+}
+div.sourceCode {
+background-color: #00000010;
+width: 100%;
+margin-left: 0.5em;
+margin-right: 0.5em;
+}
+code.sourceCode.r, code.sourceCode.python {
+background-color: transparent;
+font-size: 27pt;
+border-radius: 2mm;
+}
+code {
+font-size: 27pt;
+font-family: monospace;
+background-color: $if(secondary_colour)$$secondary_colour$24$else$#00808024$endif$;
+color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+padding: 0.5mm;
+line-height: 1;
+border-radius: 1mm;
+}
+caption {
+margin-bottom: 10px;
+font-size: 35pt;
+font-style: italic;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$20;
+}
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+  border-spacing: 0;
+  font-size: 80%;
+  border-style: none;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-right: 1em;
+  padding-left: 1em;
+  line-height: 1em;
+}
+table {
+  margin: auto;
+}
+th {
+  padding-left: 5mm;
+  padding-right: 5mm;
+}
+.caption {
+font-size: 30pt;
+font-style: italic;
+padding-top: 0;
+}
+.references {
+font-size: $if(reference_textsize)$$reference_textsize$$else$20px$endif$;
+line-height: 90%;
+}
+/* Create three unequal columns that floats next to each other */
+.column {
+float: left;
+padding: 0px;
+}
+.outer {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_topsize)$ (1 - $main_topsize$ - $main_bottomsize$ - 0.01) $else$ 0.6325 $endif$);
+-webkit-column-count: $if(column_numbers)$$column_numbers$$else$3$endif$; /* Chrome, Safari, Opera */
+-moz-column-count: $if(column_numbers)$$column_numbers$$else$3$endif$; /* Firefox */
+column-count: $if(column_numbers)$$column_numbers$$else$3$endif$;
+-webkit-column-fill: auto;
+-moz-column-fill: auto;
+column-fill: auto;
+column-gap: 0;
+padding-left: 0cm;
+padding-right: 0cm;
+/* -webkit-column-rule-width: 50%;
+-moz-column-rule-width: 50%;
+column-rule-width: 50%; */
+-webkit-column-rule-style: none;
+-moz-column-rule-style: none;
+column-rule-style: none;
+-webkit-column-rule-color: black;
+-moz-column-rule-color: black;
+column-rule-color: black;
+background-color: $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$;
+font-family: $if(font_family)$$font_family$$else$Rasa$endif$;
+margin-top: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_topsize)$ $main_topsize$ $else$ 0.25 $endif$);
+padding-top: 1em;
+padding-bottom: 1em;
+}
+span.citation {
+  color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+  font-weight: bold;
+}
+a {
+text-decoration: none;
+color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+}
+#title {
+font-size: $if(title_textsize)$$title_textsize$$else$125pt$endif$;
+text-align: left;
+margin: 0;
+line-height: 98%;
+border-bottom: 0;
+font-weight: normal;
+background: 0;
+}
+#author {
+color:$if(author_textcol)$$author_textcol$$else$$if(primary_colour)$$primary_colour$$else$#0b4545$endif$$endif$;
+margin: 0;
+line-height: 85%;
+font-size: $if(author_textsize)$$author_textsize$$else$1.17em$endif$;
+}
+#affiliation {
+padding-top: 0.1em;
+color: $affiliation_textcol$;
+font-style: italic;
+font-size: $if(affiliation_textsize)$$affiliation_textsize$$else$25px$endif$;
+margin: 0;
+}
+sup {
+color: $if(accent_colour)$$accent_colour$$else$#cc0000$endif$;
+}
+.affiliation sup {
+font-size: 20px;
+}
+.author {
+text-align: left;
+}
+.author sup {
+font-size: 30px;
+}
+.author_extra {
+color: $if(secondary_colour)$$secondary_colour$$else$#008080$endif$;
+margin: 0;
+line-height: 85%;
+font-size: $if(authorextra_textsize)$$authorextra_textsize$$else$35px$endif$;
+text-align: left;
+}
+.outer h1, h2, h3, h4, h5, h6 {
+text-align: center;
+margin: 0;
+font-weight: bold;
+}
+.section h1 {
+  text-align:center;
+  padding-bottom:5px;
+  background:
+    linear-gradient(
+      to left,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 1%,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 20%,
+      $if(primary_colour)$$primary_colour$$else$#0b4545$endif$75 33%,
+      $if(primary_colour)$$primary_colour$$else$#0b4545$endif$ 50%,
+      $if(primary_colour)$$primary_colour$$else$#0b4545$endif$75 66%,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 80%,
+      $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$ 99%
+    )
+    left
+    bottom
+    $if(body_bgcol)$$body_bgcol$$else$#ffffff$endif$
+    no-repeat;
+  background-size:100% 5px ;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.outer h2 {
+text-align: center;
+}
+.outer p, .level2 {
+color: $if(body_textcol)$$body_textcol$$else$#000000$endif$;
+}
+.outer ol {
+padding-left: 8%;
+padding-right: 8%;
+text-align: left;
+}
+.main {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_topsize)$$main_topsize$$else$0.25$endif$);
+position: absolute;
+background-color: $if(primary_colour)$$primary_colour$$else$#0b4545$endif$;
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$$if(main_textalpha)$$main_textalpha$$else$90$endif$;
+font-family: $if(main_fontfamily)$$main_fontfamily$$else$Special Elite$endif$;
+background-image: linear-gradient($if(primary_colour)$$primary_colour$$else$#0b4545$endif$ 50%,$if(secondary_colour)$$secondary_colour$$else$#008080$endif$);
+}
+.main strong {
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$;
+}
+.main strong > sup {
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$;
+}
+.main sup {
+color: $if(main_textcol)$$main_textcol$$else$#ffffff$endif$$if(main_textalpha)$$main_textalpha$$else$90$endif$;
+}
+#main-img-left {
+width: 10%;
+left: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+#main-img-center {
+width: 10%;
+left: calc($if(poster_width)$$poster_width$$else$36in$endif$ * 0.45);
+bottom: 0.5in;
+position: absolute;
+}
+#main-img-right {
+width: 10%;
+right: 0.5in;
+bottom: 0.2in;
+position: absolute;
+}
+.main p {
+font-size: $if(main_textsize)$$main_textsize$$else$150px$endif$;
+font-family: $if(main_fontfamily)$$main_fontfamily$$else$Special Elite$endif$;
+text-align: $if(main_textalign)$$main_textalign$$else$center$endif$;
+margin: 0;
+position: absolute;
+top: 50%;
+-ms-transform: translateY(-50%);
+transform: translateY(-50%);
+margin-left: 1em;
+}
+.fab {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 25px;
+}
+.twitter, i {
+color: #00000090;
+font-size: 35px;
+text-decoration: none;
+}
+a.email {
+text-decoration: none;
+color: #00000090;
+font-size: 35px;
+}
+.envelope {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 5px;
+text-decoration: none;
+}
+.globe {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 5px;
+text-decoration: none;
+}
+.globetext {
+color: $if(affiliation_textcol)$$affiliation_textcol$$else$#00000060$endif$;
+font-size: 35px;
+text-decoration: none;
+}
+.poster_wrap {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: $if(poster_height)$$poster_height$$else$48in$endif$;
+padding: 0cm;
+}
+.main_bottom {
+width: $if(poster_width)$$poster_width$$else$36in$endif$;
+height: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_bottomsize)$$main_bottomsize$$else$0.1$endif$);
+margin-top: calc($if(poster_height)$$poster_height$$else$48in$endif$ * $if(main_bottomsize)$(1 - $main_bottomsize$)$else$0.9$endif$);
+position: absolute;
+background-color: $if(primary_colour)$$primary_colour$$else$#0b4545$endif$;
+background-image: linear-gradient($if(secondary_colour)$$secondary_colour$$else$#008080$endif$ 10%, $if(primary_colour)$$primary_colour$$else$#0b4545$endif$);
+}
+.section {
+  padding-left: $if(column_padding)$$column_padding$$else$10mm$endif$;
+  padding-right: $if(column_padding)$$column_padding$$else$10mm$endif$;
+}
+span > #tab:mytable {
+  font-weight: bold;
+}
+.orcid img {
+  width: 3%;
+}
+.emphasis {
+  background-color: #008080;
+  color: #ffffff;
+  border: solid #0b2045 3mm;
+  margin: 1em;
+  padding-left: 0;
+  padding-right: 0;
+}
+.emphasis h1 {
+  font-weight: bold;
+  background: none;
+  background-color: #0b2045;
+  padding-bottom: 5mm;
+  padding-top: 1mm;
+  margin-top: -1mm;
+  margin-right: -1mm;
+  margin-left: -1mm;
+}
+.emphasis blockquote {
+  border: 0;
+}
+.emphasis ol {
+  padding: 0;
+  padding-left: 8%;
+  font-size: 100%;
+  font-weight: bold;
+}
+.emphasis p {
+  color: #ffffff;
+}
+</style>
+<div id="motivación" class="section level1">
+<h1>Motivación</h1>
+<p>Las variables ambientales determinan muchos procesos biológicos en los ecosistemas marinos. La temperatura es especialmente importante en altas latitudes donde ocurren marcadas variaciones estacionales que influyen en los ciclos de vida de los organismos. Debido a los desafíos involucrados en obtener datos <em>in situ</em> y su baja resolución espaciotemporal, <strong>utilizar datos satelitales emerge como una herramienta poderosa para impulsar los análisis marinos</strong>.</p>
+<div id="qué-incluye-este-poster" class="section level2">
+<h2>¿Qué incluye este poster?</h2>
+<p>Un flujo de trabajo con los pasos para i) obtener <strong>datos satelitales de temperatura superficial del mar (tsm)</strong> desde el servidor ERDDAP usando el paquete <em>rerddap</em> <span class="citation">(<a href="#ref-R-rerddap" role="doc-biblioref">Chamberlain 2021</a>)</span> y ii) <strong>visualizar</strong> los resultados.</p>
+</div>
+<div id="dónde-y-cuándo" class="section level2">
+<h2>¿Dónde y cuándo?</h2>
+<p>El área de estudio abarca el extremo sur del Océano Atlántico Sudoccidental, donde existe una <strong>marcada estacionalidad</strong> y un <strong>gradiente longitudinal</strong> en la tsm entre temporadas. Visualizaremos datos de tsm de la primavera 2015 y otoño 2016.</p>
+</div>
+<div id="con-cuál-base-de-datos" class="section level2">
+<h2>¿Con cuál base de datos?</h2>
+<p>Con ‘jplMURSST41’, una base de datos de tsm de <strong>ultra-alta resolución</strong> generada en el <em>JPL Physical Oceanography DAAC (PODAAC)</em>. Esta incluye una <strong>grilla global de 0,01 grados</strong> con tsm interpoladas en grados Celcius (ºC). Más información en este <a href="https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1">sitio web</a>.</p>
+<p>Aquí puedes ver <a href="https://coastwatch.pfeg.noaa.gov/erddap/griddap/index.html?page=1&amp;itemsPerPage=1000">otras bases de datos de ERDDAP</a>.</p>
+</div>
+</div>
+<div id="cargar-los-paquetes" class="section level1">
+<h1>1. Cargar los paquetes</h1>
+<p>Ademas del paquete <em>rerdapp</em>, necesitaremos los paquetes <em>tidyverse</em> <span class="citation">(<a href="#ref-R-tidyverse" role="doc-biblioref">Wickham 2019</a>)</span>, <em>sf</em> <span class="citation">(<a href="#ref-R-sf" role="doc-biblioref">Pebesma 2022</a>)</span>, <em>ggspatial</em> <span class="citation">(<a href="#ref-R-ggspatial" role="doc-biblioref">Dunnington 2021</a>)</span>, <em>rnaturalearth</em> <span class="citation">(<a href="#ref-R-rnaturalearth" role="doc-biblioref">South 2017a</a>)</span>, <em>rnaturalearthdata</em> <span class="citation">(<a href="#ref-R-rnaturalearthdata" role="doc-biblioref">South 2017b</a>)</span>, <em>rnaturalearthhires</em> <span class="citation">(<a href="#ref-R-rnaturalearthhires" role="doc-biblioref">South 2021</a>)</span> and <em>marmap</em> <span class="citation">(<a href="#ref-R-marmap" role="doc-biblioref">Pante, Simon-Bouhet, and Irisson 2020</a>)</span> para manipular los datos y generar lindas visualizaciones :)</p>
+</div>
+<div id="descargar-datos-de-tsm" class="section level1">
+<h1>2. Descargar datos de tsm</h1>
+<p>Obtendremos datos de tsm con la función <code>info()</code> y eligiremos los datos deseados de acuerdo a la resolución espacio-temporal necesaria con la función <code>griddap()</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#obtener base de datos de tsm</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sstInfo <span class="ot">&lt;-</span> <span class="fu">info</span>(<span class="st">&#39;jplMURSST41&#39;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#elegir la resolucion espacio-temporal</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>sst_spring <span class="ot">&lt;-</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">griddap</span>(sstInfo,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">latitude =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">56</span>, <span class="sc">-</span><span class="dv">52</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">longitude =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">70</span>, <span class="sc">-</span><span class="dv">55</span>),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">time =</span> <span class="fu">c</span>(<span class="st">&#39;2015-09-21&#39;</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&#39;2015-12-21&#39;</span>),</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">fields =</span> <span class="st">&#39;analysed_sst&#39;</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">fmt =</span><span class="st">&quot;csv&quot;</span>)</span></code></pre></div>
+<p>Descargar estos datos toma tiempo… para evitarlo, puedes guardarlos en un archivo <code>.csv</code> para tenerlos disponibles en el futuro, llamándolos con el comando</p>
+<p><code>write.csv(sst_spring,"sst_spring.csv",row.names=F)</code></p>
+</div>
+<div id="leer-y-organizar-los-datos" class="section level1">
+<h1>3. Leer y organizar los datos</h1>
+<p>Tenemos múltiples tsm para cada par latitud/longitud (una por día), por lo que estimaremos una <strong>tsm promedio</strong>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#cargar los datos</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sst_spring <span class="ot">&lt;-</span> </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read.csv</span>(<span class="at">file=</span><span class="st">&quot;sst_spring.csv&quot;</span>,<span class="at">header=</span>T)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#transformar y organizar los datos</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>mean_sst_spring <span class="ot">&lt;-</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#transformar en un data frame</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>(sst_spring) <span class="sc">%&gt;%</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#seleccionar las variables</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(longitude, latitude,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                analysed_sst) <span class="sc">%&gt;%</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">#estimar tsm promedio</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(longitude,latitude) <span class="sc">%&gt;%</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_sst=</span><span class="fu">mean</span>(analysed_sst)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">#generar nueva variable segun la temporada</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">season=</span><span class="st">&quot;Primavera&quot;</span>)</span></code></pre></div>
+<p>Repetimos el mismo procedimiento para <strong>otoño</strong>, creando un nuevo objeto llamado <code>mean_sst_autumn</code>, y finalizamos uniendo ambos conjuntos de datos en un único objeto.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#unir los datos de ambas estaciones</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>mean_sst <span class="ot">&lt;-</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(mean_sst_spring,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            mean_sst_autumn)</span></code></pre></div>
+</div>
+<div id="finalmente-el-gráfico" class="section level1">
+<h1>¡Finalmente el gráfico!</h1>
+<p>Graficaremos los datos de tsm con <em>ggplot2</em>, usando la función <code>geom_raster()</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>()<span class="sc">+</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#incluir la tsm como raster e interpolar</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>(<span class="at">data =</span> mean_sst,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> longitude,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">y =</span> latitude,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> mean_sst),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">interpolate =</span> T)<span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#establecer el color de relleno</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">alpha =</span> <span class="fl">0.85</span>)<span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#separar graficos por estacion</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(season<span class="sc">~</span>.)</span></code></pre></div>
+<p>Algunos ajustes adicionales permiten incluir el territorio continental y contornos batimétricos relevantes al mapa, para obtener esto!</p>
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-2"></span>
+<img src="poster_es_files/figure-html/unnamed-chunk-2-1.svg" alt="Gráfico que muestra datos de la temperatura media de la superficie del mar en la primavera de 2015 y el otoño de 2016 en la región sur del Océano Atlántico Sudoccidental. La temperatura se indica en grados Celsius y los valores oscilan entre 2,60 y 6,16 grados en primavera y entre 3,70 y 11,03 grados en otoño. En ambos estaciones, las temperaturas son más altas cerca de las costas de Tierra del Fuego (Argentina) y disminuyen hacia la zona más oceánica al este de la plataforma continental." width="100%" />
+<p class="caption">
+Figure 1: Temperatura superficial del mar (tsm) promedio en la primavera de 2015 y el otoño de 2016 en el área de estudio
+</p>
+</div>
+<p>Esperamos que esta explicación les haya resultado útil!!! Los materiales usados para este poster se encuentran a disposición en este <a href="https://github.com/virginiagarciaalonso/useR_2022_sst">repositorio de GitHub</a>.</p>
+</div>
+<div id="referencias" class="section level1 unnumbered">
+<h1>Referencias</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-R-rerddap" class="csl-entry">
+Chamberlain, Scott. 2021. <em>Rerddap: General Purpose Client for ERDDAP Servers</em>. <a href="https://CRAN.R-project.org/package=rerddap">https://CRAN.R-project.org/package=rerddap</a>.
+</div>
+<div id="ref-R-ggspatial" class="csl-entry">
+Dunnington, Dewey. 2021. <em>Ggspatial: Spatial Data Framework for Ggplot2</em>. <a href="https://CRAN.R-project.org/package=ggspatial">https://CRAN.R-project.org/package=ggspatial</a>.
+</div>
+<div id="ref-R-marmap" class="csl-entry">
+Pante, Eric, Benoit Simon-Bouhet, and Jean-Olivier Irisson. 2020. <em>Marmap: Import, Plot and Analyze Bathymetric and Topographic Data</em>. <a href="https://github.com/ericpante/marmap">https://github.com/ericpante/marmap</a>.
+</div>
+<div id="ref-R-sf" class="csl-entry">
+Pebesma, Edzer. 2022. <em>Sf: Simple Features for r</em>. <a href="https://CRAN.R-project.org/package=sf">https://CRAN.R-project.org/package=sf</a>.
+</div>
+<div id="ref-R-rnaturalearth" class="csl-entry">
+South, Andy. 2017a. <em>Rnaturalearth: World Map Data from Natural Earth</em>. <a href="https://github.com/ropenscilabs/rnaturalearth">https://github.com/ropenscilabs/rnaturalearth</a>.
+</div>
+<div id="ref-R-rnaturalearthdata" class="csl-entry">
+———. 2017b. <em>Rnaturalearthdata: World Vector Map Data from Natural Earth Used in Rnaturalearth</em>. <a href="https://github.com/ropenscilabs/rnaturalearthdata">https://github.com/ropenscilabs/rnaturalearthdata</a>.
+</div>
+<div id="ref-R-rnaturalearthhires" class="csl-entry">
+———. 2021. <em>Rnaturalearthhires: High Resolution World Vector Map Data from Natural Earth Used in Rnaturalearth</em>.
+</div>
+<div id="ref-R-tidyverse" class="csl-entry">
+Wickham, Hadley. 2019. <em>Tidyverse: Easily Install and Load the Tidyverse</em>. <a href="https://CRAN.R-project.org/package=tidyverse">https://CRAN.R-project.org/package=tidyverse</a>.
+</div>
+</div>
+</div>
+
+</div>
+<div class="main">
+<p>Cómo obtener y visualizar <strong>datos satelitáles de temperatura superficial del mar</strong> para estudios de datos marinos</p>
+</div>
+<div class="main_bottom">
+<img id="main-img-left" src=>
+<img id="main-img-center" src=>
+<img id="main-img-right" src=>
+</div>
+</div>
+
+
+
+</body>
+</html>
