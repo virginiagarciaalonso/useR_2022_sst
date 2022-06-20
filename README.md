@@ -4,12 +4,12 @@ Repository with the scripts and materials employed to create the poster mentione
 
 Here you can find the final files:
 
--[Poster (english)](<https://github.com/virginiagarciaalonso/useR_2022_sst/blob/main/poster_en.pdf>)
--[Poster (spanish)](<>)
--[Slides (english)](<https://user-2022-sst-slides-en.netlify.app/>)
--[Slides (spanish)](<>)
+* [Poster (english)](<https://github.com/virginiagarciaalonso/useR_2022_sst/blob/main/poster_en.pdf>)
+* [Poster (spanish)](<https://github.com/virginiagarciaalonso/useR_2022_sst/blob/main/poster_es.pdf>)
+* [Slides (english)](<https://user-2022-sst-slides-en.netlify.app/>)
+* [Slides (spanish)](<>)
 
-The poster was created employing the `posterdown_betterport` template from the [*posterdown*](<https://github.com/brentthorne/posterdown>) package by Brent Thorne.
+Posters were created employing the `posterdown_betterport` template from the [*posterdown*](<https://github.com/brentthorne/posterdown>) package by Brent Thorne and slides presentations with the [xarigan useR! theme](<https://gitlab.com/rconf/user-xaringan-theme>) for accesible presentations.
 
 We strongly recommend checking [this blog](<https://rmendels.github.io/Using_rerddap.nb.html>) by Roy Mendelssohn and Scott Chamberlain on how to use *rerddap* to access data from ERDDAP servers from which we based our methodology to retrieve sea temperature data.
 
