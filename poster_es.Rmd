@@ -25,7 +25,7 @@ affiliation:
   - num: 4
     address: CONICET-Universidad de Buenos Aires. Instituto de Estudios Andinos "Don Pablo Groeber" (IDEAN). Buenos Aires, Argentina.
 main_findings:
-  - "Cómo obtener y visualizar **datos satelitáles de temperatura superficial del mar** para estudios de datos marinos"
+  - "Cómo obtener y visualizar **datos satelitales de temperatura superficial del mar**"
 output: 
   posterdown::posterdown_betterport:
     self_contained: false
