@@ -18,7 +18,7 @@
 
 .title-slide h1 {
   position: absolute;
-  bottom: 25%;
+  bottom: 35%;
   text-align: left;
   color: #454647;
   font-weight: bold;
@@ -27,7 +27,7 @@
 .title-slide h2 {
   font-size: 30pt;
   position: absolute;
-  bottom: 15%;
+  bottom: 10%;
   text-align: left;
 }
 

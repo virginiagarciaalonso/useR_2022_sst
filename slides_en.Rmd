@@ -1,0 +1,385 @@
+---
+title: "Retrieving and visualizing satellite sea water temperature data for marine analyses" 
+subtitle: "A case study using the *rerddap* R package"
+author: "Virginia A. García Alonso; Pablo S. Milla Carmona"
+output:
+  xaringan::moon_reader:
+    css: ["css/useR.css", "css/useR-fonts.css"]
+    self_contained: true
+    nature:
+      ratio: '16:9'
+---
+
+```{r setup, include=FALSE}
+#to suppress the version number in the subdirectory name
+options(htmltools.dir.version = FALSE)
+
+#to change the default values of chunk options 
+knitr::opts_chunk$set(echo = FALSE, #prevent printing of the R code
+                      warning = FALSE, #prevent printing of warnings
+                      message = FALSE, #prevent printing of messages
+                      fig.align = 'center',
+                      out.width = "100%",
+                      dev = 'svg', #set figures' formats
+                      dev.args = list(bg = "transparent"))
+```
+
+
+# Motivation
+
+Environmental variables are key determinants of many biological processes in marine ecosystems. Temperature variability is especially important in high latitudes where organisms are subject to marked seasonal variations which influence their life cycles. Since collection of *in situ* data entails different logistic challenges and may provide inadequate spatiotemporal resolutions, **satellite data emerges as a powerful tool to boost marine analyses**.
+
+## What is this poster about?
+
+A **workflow** including the necessary steps to i) retrieve **satellite sea surface temperature (sst) data** from the ERDDAP server using the *rerddap* package (Chamberlain 2021) and ii) **visualize** the results.
+
+
+???
+
+Hi everyone! my name is Virginia, and with my co-author Pablo we prepared this poster to show you how to use R to collect sea surface temperature satellite data from online data bases and use it to produce nice maps depicting variation in this quantity across space.  
+
+Although the protocol we present can be used to download and plot data of other physical quantities as well, we chose sea surface temperature because of its importance in biological processes of marine ecosystems, especially at high latitudes where organisms are subject to marked seasonal variations that exert a great influence over their biological cycles. Since collection of in situ data can be logistically very challenging and still end up providing inadequate spatio-temporal resolutions, satellite data emerges as a powerful tool to boost marine analyses (and doing it from R adds a bit of extra joy to it). To do so, we use the sea surface temperature stored in the ERDDAP server, downloaded using the rerddap package and visualized using the ggplot2 package (among others).
+
+So, with this in mind we outlined a workflow comprising three main steps: loading the data, organizing and preparing the data, and plotting the data. 
+
+---
+
+.pull-left[
+## Where and when?
+
+The chosen study area is located in the southern border of the Southwest Atlantic Ocean, a region displaying both a **marked seasonality** and a **longitudinal gradient** in water temperature across seasons. We will visualize sst data from austral spring and autumn of 2015-2016.
+]
+
+.pull-right[
+## Which data set?
+
+The 'jplMURSST41' gridded data set, a **Multiscale Ultrahigh Resolution (MUR) L4 analysis** of sst. It includes a **global 0.01 degree grid** with interpolated sst expressed as Celsius degrees (ºC). More information can be found at the [podaac dataset website](<https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1>).
+
+To visualize other ERDDAP data sets check [this page](<https://coastwatch.pfeg.noaa.gov/erddap/griddap/index.html?page=1&itemsPerPage=1000>).
+]
+
+???
+
+In particular, the chosen study area is located in the southern border of the Southwest Atlantic Ocean (which is where I conduct my research), a region displaying a marked longitudinal gradient in water temperature across seasons. We will visualize sea surface temperature data from austral spring and autumn of 2015-2016.
+
+We will use a gridded data set which is a Multiscale Ultrahigh Resolution (MUR) L4 analysis of sea surface temperature produced at the JPL Physical Oceanography DAAC, that includes a global 0.01 degree grid and temperatures expressed as Celsius degrees. 
+
+
+---
+
+class: chapter-slide
+
+# Steps
+
+---
+
+# 1. Load needed packages
+
+Besides the *rerdapp* package, we will need the following packages to manipulate data and visualize it nicely :)
+
+* *tidyverse* (Wickham 2019) 
+* *sf* (Pebesma 2022)
+* *ggspatial* (Dunnington 2021)
+* *rnaturalearth* (South 2017a)
+* *rnaturalearthdata* (South 2017b)
+* *rnaturalearthhires* (South 2021) 
+* *marmap* (Pante, Simon-Bouhet, and Irisson 2020) 
+
+```{r packages, echo=FALSE}
+#to retrieve sea surface temperature (sst) data
+library(rerddap)
+
+#for basic data manipulation and visualization
+library(tidyverse)
+
+# to work with spatial data and improve our maps
+library(sf) # st_crop()
+library(ggspatial) # annotation_north_arrow() / annotation_scale()
+
+#to retrieve world map
+library(rnaturalearth) # ne_countries()
+library(rnaturalearthdata) # holds data used by rnaturalearth package
+library(rnaturalearthhires) # high resolution world vector maps from Natural Earth
+
+# to retrieve bathymetric data
+library(marmap) # getNOAA.bathy()
+
+#to solve problems with the latest version of sf for st_as_sf()
+sf_use_s2(FALSE)
+```
+
+???
+
+---
+# 2. Download sst data
+
+.pull-left[
+We will retrieve sst data with the `info()` function and choose the desired data according to the spatiotemporal resolution needed with the `griddap()` function.
+
+
+Downloading this data takes a while... you can save it as a `.csv` file to use it in the future with the following command:
+
+`write.csv(sst_spring,"sst_spring.csv",row.names=FALSE)`
+]
+
+.pull-right[
+```{r download_sst_spring, eval=FALSE, echo=T}
+#retrieve the sst data set
+sstInfo <- info('jplMURSST41')
+
+#choose the spatiotemporal resolution
+sst_spring <-
+  
+  griddap(sstInfo,
+          latitude = c(-56, -52),
+          longitude = c(-70, -55),
+          time = c('2015-09-21',
+                   '2015-12-21'),
+          fields = 'analysed_sst',
+          fmt ="csv")
+```
+]
+
+???
+
+We will retrieve this data with the `info()` function and set the desired spatiotemporal scope (in our case, the Southwest Atlantic Ocean) with the `griddap()` function. Since these data sets are usually very large and downloading them can take a while, it can be better to save it as a csv file in your computer, so you can use it again without doing the waiting. This can be done with the function `write.csv()` 
+---
+
+.pull-left[
+
+# 3. Read and organize data
+
+We have multiple sst for each latitude/longitude pair (one per day), so we will estimate **mean sst**.
+]
+
+.pull-right[
+```{r read_sst_spring, echo=T, out.width = "120%",}
+#load the data as following
+sst_spring <-
+  
+  read.csv(file = "sst_spring.csv",
+           header = TRUE)
+  
+#transform and organize the data
+mean_sst_spring <-
+  
+  #transform to a data frame
+  as.data.frame(sst_spring) %>%
+
+  #select the needed variables
+  dplyr::select(longitude, latitude,
+                analysed_sst) %>%
+  
+  #estimate mean sst for each lat/long
+  group_by(longitude,latitude) %>%
+  summarise(mean_sst = 
+              mean(analysed_sst)) %>%
+  ungroup() %>%
+  
+  #set a new variable to identify 
+  #the season
+  mutate(season="Spring")
+```
+]
+
+---
+
+class: middle, center
+
+We can repeat the same procedure for **autumn** creating a new object named `mean_sst_autumn` and finally join both datasets in a single object.
+
+```{r download_sst_autumn, eval=FALSE}
+  sst_autumn <-   
+    griddap(sstInfo,
+            latitude = c(-56, -51), 
+            longitude = c(-70, -55),
+            time = c('2016-03-21',
+                     '2016-06-21'),
+            fields = 'analysed_sst',
+            fmt = "csv")
+
+  #save data to use it in the future
+  write.csv(sst_autumn,"sst_autumn.csv", row.names = FALSE)
+```
+
+```{r read_sst_autumn}
+#load the data as following
+sst_autumn <- read.csv(file = "sst_autumn.csv",
+                       header = TRUE)
+  
+  #transform and organize data
+  mean_sst_autumn <-
+    
+    #transform to a data frame
+    as.data.frame(sst_autumn) %>%
+    
+    #select the needed variables
+    dplyr::select(longitude,latitude,analysed_sst) %>%
+    
+    #estimate mean temperature for each lat/long position
+    group_by(longitude,latitude) %>%
+    summarise(mean_sst=mean(analysed_sst)) %>%
+    ungroup() %>%
+    
+    #set a new variable to merge data with spring
+    mutate(season = "Autumn")
+
+```
+
+```{r join_data, echo=T}
+#join data from both seasons
+mean_sst <- bind_rows(mean_sst_spring,
+                      mean_sst_autumn)
+```
+
+
+???
+
+Once the downloading is over, we will have raw data with the correct spatial scope and resolution but not the desired temporal resolution (which is in days, far more finer than what we want). In order fix this, we reformat our data into a data frame and average all the daily measurements collapsing them into two means, one for spring 2015 and other for autumn 2016, in separate objects (here we only show the code for the first operation, but the full code can be found in the markdown stored in the public GitHub repository of this poster). Finally, we merge data from both seasons into a single object.
+
+---
+.pull-left[
+# Finally, the plot!
+
+
+We will plot sst data with *ggplot2*, employing the `geom_raster()` function.
+```{r geom_raster, echo=T, eval=F}
+ggplot()+
+  
+  #add sst as a raster and interpolate
+  geom_raster(data = mean_sst,
+              aes(x = longitude,
+                  y = latitude,
+                  fill = mean_sst),
+                  interpolate = T)+
+  
+  #set the fill
+  scale_fill_viridis_c(alpha = 0.85)+
+  
+  #separate plots for each season
+  facet_grid(season~.)
+```
+]
+
+.pull-right[
+A few more tweaks allow including the continental territory and relevant bathymetric contours to the map and getting this!
+
+```{r basemap, echo=F}
+
+#retrieve world map
+world <- ne_countries(scale = "large", returnclass = "sf")
+
+#subset data to the study area
+study_area<-st_crop(world, xmin = -70, xmax = -55,
+                           ymin = -56, ymax = -52)
+
+bathy_data <- 
+  
+  #get the data      
+  getNOAA.bathy(lon1=-71, lon2=-54,
+                lat1=-58, lat2=-51,
+                #keep=T, #if the datafile is very large you can save it as a csv.
+                resolution=1) %>%  #resolution in minutes
+  
+  #prepare data
+  fortify.bathy() %>%  #extract bathymetric values
+  mutate(z = as.numeric(z)) %>% 
+  
+  #subset for study area
+  filter(z<=-1 & between(x, -70, -55) & between(y, -56, -52))
+```
+
+
+```{r, fig.alt = "Plot showing mean sea surface temperature data in spring 2015 and autumn 2016 in the southern region of the Southwest Atlantic Ocean. Temperature is indicated in Celsius degrees and values range between 2.60 and 6.16 degrees in spring and 3.70 and 11.03 degrees in autumn. In both seasons, temperatures are higher near the coasts of Tierra del Fuego (Argentina) and decreases towards the more oceanic area at the east of the continental shelf.", message=F, warning=F}
+
+ggplot()+
+  
+  #add sst as a raster and interpolate
+  geom_raster(data = mean_sst, 
+              aes(x = longitude, 
+                  y = latitude, 
+                  fill = mean_sst),
+                  interpolate = T)+
+  
+  #set the fill
+  scale_fill_viridis_c(alpha = 0.85)+
+
+  #adjust how we "see" the map
+  geom_sf(data=study_area, fill= "grey20", colour = "white") +
+  
+  #add the 200m isobath
+  geom_contour(data = bathy_data, aes(x=x, y=y, z=z),
+               breaks=c(-200), size=0.5, colour="white")+
+  
+  #adjust the limits to the area
+  coord_sf(xlim = c(-70, -55), ylim = c(-56, -52), expand = F)+
+  
+  #set the breaks in "x" and "y" axis
+  scale_x_continuous(breaks = seq(from=-68, to=-56, by=4)) +
+  scale_y_continuous(breaks = seq(from=-55, to=-53, by=2))+
+  
+  #add scale bar
+  annotation_scale(location = "br", width_hint = 0.2, 
+                   text_cex = 1, text_col= "white") +
+
+  #add north arrow
+  annotation_north_arrow(location = "br", 
+                         which_north = T,
+                         style = north_arrow_fancy_orienteering
+                         # pad_x = unit(0.35, "cm"),
+                         # pad_y = unit(0.5, "cm"),
+                         # height = unit(2, "cm"),
+                         # width = unit(2, "cm")
+                         )+     
+
+  #separate according to season
+  facet_grid(season~.)+
+  
+  #add title
+  ggtitle("Seasonal sst variability") +
+
+  #change legend title
+  labs(fill = "Mean\nsst (ºC)")+
+
+  #set theme
+  theme_bw(base_size = 20)+
+  
+  #remove axis names and adjust strip
+  theme(axis.title = element_blank(),
+        legend.position = "bottom",
+        legend.key.width = unit(1.5, "cm"),
+        strip.background = element_blank(),
+        strip.text =  element_text(face = "bold",hjust = 0))
+```
+]
+
+???
+
+Finally, we are ready to attempt the plotting using the graphical capabilities of ggplot2. The `geom_raster()` function will be the main responsible for creating the map, which can be further tweaked to include other elements such as the continental territory and bathymetric contours. Again, the code to do all this is in the GitHub repository of this poster, so feel free to go there and steal whatever you think may be useful!
+
+---
+
+class: middle, center
+
+# Thank you very much for the attention!
+
+## Hope you find it useful :) 
+
+Materials employed for the poster and a spanish version are openly shared in this [GitHub repository](<https://github.com/virginiagarciaalonso/useR_2022_sst>)
+
+???
+
+That’s it! We hope you find this protocol useful to start gathering and plotting satellite data for your own work. Materials employed for this poster are openly shared in a GitHub repository. Thank you all for you attention!
+
+---
+
+# References
+
+Chamberlain, Scott. 2021. Rerddap: General Purpose Client for ERDDAP Servers. https://CRAN.R-project.org/package=rerddap.
+Dunnington, Dewey. 2021. Ggspatial: Spatial Data Framework for Ggplot2. https://CRAN.R-project.org/package=ggspatial.
+Pante, Eric, Benoit Simon-Bouhet, and Jean-Olivier Irisson. 2020. Marmap: Import, Plot and Analyze Bathymetric and Topographic Data. https://github.com/ericpante/marmap.
+Pebesma, Edzer. 2022. Sf: Simple Features for r. https://CRAN.R-project.org/package=sf.
+South, Andy. 2017a. Rnaturalearth: World Map Data from Natural Earth. https://github.com/ropenscilabs/rnaturalearth.
+———. 2017b. Rnaturalearthdata: World Vector Map Data from Natural Earth Used in Rnaturalearth. https://github.com/ropenscilabs/rnaturalearthdata.
+———. 2021. Rnaturalearthhires: High Resolution World Vector Map Data from Natural Earth Used in Rnaturalearth.
+Wickham, Hadley. 2019. Tidyverse: Easily Install and Load the Tidyverse. https://CRAN.R-project.org/package=tidyverse.
